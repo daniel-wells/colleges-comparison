@@ -74,6 +74,7 @@ setnames(oxford_meta,
   c("Female","UK_percent","Norrington_Score","Eights_Headships","longitude","latitude","percent_accepted","State_acceptance_rate"),
   c("Proportion_Female","Proportion_UK_Nationality","Academic_Performance","Rowing_Performance","Longitude","Latitude","Application_Sucess_Rate","Proportion_State_School"))
 
+oxford_meta$Name <- gsub(" College", "", oxford_meta$Name)
 ```
 
 ```{r, include=FALSE}
@@ -117,7 +118,6 @@ Let's take a closer look at the dendrogram on the left which provides a sort of 
 
 ```{r dendrogram, fig.height=9, fig.width=9}
 clustering <- hclust(dist(scale_matrix_ox), "ward.D2")
-clustering$labels <- gsub(" College", "", clustering$labels)
 
 # Create coloured dendrogram
 college_dendrogram <- as.ggdend(color_branches(clustering, k = 6, col = brewer.pal(6, name = "Accent")))
@@ -159,7 +159,6 @@ We could also create a dendrogram ('family tree') of the colleges using the prin
 ```{r compare_dendrograms, fig.height=9, fig.width=9}
 # recluster with pc's
 clustering_pca <- hclust(dist(ox_pca$x[, 1:9]), "ward.D2")
-clustering_pca$labels <- gsub(" College", "", clustering_pca$labels)
 
 # clustering is similar
 tanglegram(as.dendrogram(clustering), as.dendrogram(clustering_pca), margin_inner = 8)
@@ -224,7 +223,7 @@ ggplot(norrington_2, aes(Year, Rank, group=College, colour=College)) +
   scale_color_manual(values = c(rep(brewer.pal(10, "Paired"), 3))) + 
   geom_text_repel(
     data = subset(norrington_2, Year == "2016"),
-    aes(label = gsub("College", "", College)),
+    aes(label = gsub(" College", "", College)),
     size = 3,
     nudge_x = 500
     )
