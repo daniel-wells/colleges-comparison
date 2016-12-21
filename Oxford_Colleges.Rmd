@@ -148,6 +148,7 @@ ox_pca_dt <- data.table(ox_pca$x[, 1:4], oxford_meta)
 # plot PCA
 ggplot(ox_pca_dt, aes(PC1, PC2, colour = Year_of_Foundation)) +
   geom_point() +
+  theme(legend.position="bottom") +
   geom_label_repel(aes(label = Name), size = 3, force = 4) +
   xlab(paste0("1st Principal Component (", percent_variance_explained[1], "% variance explained)")) +
   ylab(paste0("2nd Principal Component (", percent_variance_explained[2], "% variance explained)"))
