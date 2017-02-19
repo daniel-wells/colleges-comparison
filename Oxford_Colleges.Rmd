@@ -7,11 +7,12 @@ Oxford University is made up of 38 self governing colleges (and 6 Permanent Priv
 
 ```{r load_data, echo=FALSE, message=FALSE, warning=FALSE}
 library(knitr)
-opts_chunk$set(echo=FALSE, fig.height=9, fig.width=9, message=FALSE, warning=FALSE)
+opts_chunk$set(echo=FALSE,fig.width=10, fig.asp=1, fig.retina=2, message=FALSE, warning=FALSE)
 library(data.table, quietly = TRUE) # tidying data
 library(ggplot2) # plotting
 library(ggrepel) # labels on points
 library(NMF) # heatmaps
+nmf.options(grid.patch=TRUE) # stop blank pages appearing
 library(dendextend) # dendograms
 library(RColorBrewer) # colour pallet for dendogram
 library(reshape2) # see norrington
@@ -104,7 +105,7 @@ ggplot(oxford_meta, aes(Longitude, Latitude)) +
 
 First let's do a hierarchical clustering and display it as a heat map. You can see the features I selected as columns (academic performance is the mean norrington score, and rowing performance is the number of headships in summer eights regatta). There is quite a good clustering of similar colleges (postgraduate colleges are together, prestigious colleges are together etc.).
 
-```{r hierarchical_clustering, fig.height=9, fig.width=9}
+```{r hierarchical_clustering, fig.width=10, fig.asp=1}
 matrix_ox <- as.matrix(oxford_meta[, .(Year_of_Foundation, Endowment, Total_students, Proportion_Postgrads = Postgraduates / Total_students, Proportion_Female, Longitude, Latitude, Application_Sucess_Rate, Proportion_State_School, Proportion_UK_Nationality, Academic_Performance, Rowing_Performance)])
 
 scale_matrix_ox <- scale(matrix_ox, T, T)
@@ -116,7 +117,7 @@ aheatmap(scale_matrix_ox, hclustfun="ward.D2", na.color = "grey")
 
 Let's take a closer look at the dendrogram on the left which provides a sort of 'family tree' of the colleges showing which colleges are closely 'related' i.e. have similar characteristics. The first split is between the graduate only colleges (green) and the rest. Then in orange and purple we have the group of colleges generally considered the most prestigious (old, large endowment, pretty architecture). All Souls is an outlier in that it has only 6 graduate humanities students in the whole college, but it is very prestigious and so clusters better with the mixed undergraduate-graduate colleges in orange rather than the other graduate only colleges. In blue and pink are the most relaxed colleges which are generally newer and located further from the center. In yellow are the rest of the colleges.
 
-```{r dendrogram, fig.height=9, fig.width=9}
+```{r dendrogram, fig.width=10, fig.asp=1}
 clustering <- hclust(dist(scale_matrix_ox), "ward.D2")
 
 # Create coloured dendrogram
@@ -128,17 +129,17 @@ ggplot(college_dendrogram, horiz = TRUE, offset_labels = -0.2)
 
 Many of the features used in the above analysis provide redundant information, e.g. the percentage of postgrads is highly negatively correlated with the percentage of students of UK nationality. Below is the correlation matrix for each feature.
 
-```{r correlation_matrix, fig.height=9, fig.width=9}
+```{r correlation_matrix, fig.width=10, fig.asp=1}
 # impute missing values using the mean
 scale_matrix_ox[is.na(scale_matrix_ox)] <- 0
 
 # View correlation matrix
-aheatmap(cor(scale_matrix_ox), breaks = seq(-1, 1, 0.02), cexCol = 1.0, cexRow = 0.25, treeheight = c(0, 30))
+aheatmap(cor(scale_matrix_ox), breaks = seq(-1, 1, 0.02), cexCol = 1.0, cexRow = 0.25, treeheight = c(0, 30), legend=TRUE)
 ```
 
 We can use a dimensionality reduction technique called principal components analysis to collapse this dataset into a smaller number of features which enables the plotting of each college on a two dimensional plot which captures most of the variation between the colleges. In the bottom right you can see a cluster of the graduate colleges. In the bottom left are the most prestigious colleges (Christ Church, St John's, Magdalen). In the main cluster the newer and more relaxed colleges are towards the upper right.
 
-```{r PCA, fig.height=9, fig.width=9}
+```{r PCA, fig.width=10, fig.asp=1}
 # compute PCA
 ox_pca <- prcomp(scale_matrix_ox, scale. = TRUE, center = TRUE)
 percent_variance_explained <- signif(100 * (ox_pca$sdev)^2 / sum(ox_pca$sdev^2),3)
@@ -149,14 +150,14 @@ ox_pca_dt <- data.table(ox_pca$x[, 1:4], oxford_meta)
 ggplot(ox_pca_dt, aes(PC1, PC2, colour = Year_of_Foundation)) +
   geom_point() +
   theme(legend.position="bottom") +
-  geom_label_repel(aes(label = Name), size = 3, force = 4) +
+  geom_label_repel(aes(label = Name), size = 4, force = 4) +
   xlab(paste0("1st Principal Component (", percent_variance_explained[1], "% variance explained)")) +
   ylab(paste0("2nd Principal Component (", percent_variance_explained[2], "% variance explained)"))
 ```
 
 We could also create a dendrogram ('family tree') of the colleges using the principal components but we get largely the same result. The main difference being All Souls is now grouped in with the other graduate colleges.
 
-```{r compare_dendrograms, fig.height=9, fig.width=9}
+```{r compare_dendrograms, fig.width=10, fig.asp=1}
 # recluster with pc's
 clustering_pca <- hclust(dist(ox_pca$x[, 1:9]), "ward.D2")
 
@@ -178,7 +179,7 @@ tanglegram(as.dendrogram(clustering), as.dendrogram(clustering_pca), margin_inne
 
 While I have the cleaned data I thought I could also improve the visualisation of the Norrington scores (a measure of academic performance), for which the current plot on wikipedia had so many overlapping lines it was hard to extract any information. I recreate it below:
 
-```{r original_norrington, fig.height=9, fig.width=9}
+```{r original_norrington, fig.width=10, fig.asp=1}
 # Data from https://www.ox.ac.uk/about/facts-and-figures/undergraduate-degree-classifications
 # Load data
 norrington <- fread("data/Norrington/Cleaned-Table 1.csv")
@@ -231,7 +232,7 @@ ggplot(norrington_2, aes(Year, Rank, group=College, colour=College)) +
 
 I think a clearer way to display this data is to break the rankings down by college. You can see most of the college ranking fluctuate a lot as their scores are very similar. It should also be noted that different subjects award different proportions of degree classes and each college has a different proportion of subjects which biases the rankings.
 
-```{r new_norrington, fig.height=9, fig.width=9}
+```{r new_norrington, fig.width=10, fig.asp=1}
 # create plot
 ggplot(norrington_2, aes(Year, Rank)) +
   geom_line(size = 0.8) +
